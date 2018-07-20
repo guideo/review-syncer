@@ -223,7 +223,10 @@
     </div>
   </nav>
   <div class="content-wrapper">
-    <div class="container-fluid">
+    <div id="main-content" class="container-fluid">
+      <!--<div id="loading-overlay" style="position: absolute; width: 100%; height: 100%; background-color: white; z-index: 10;">
+        <img src="{% static 'custom/loading.gif' %}" alt="loading" style="margin-left: auto; margin-right: auto; display: block;"/>
+      </div>-->
       <!-- Breadcrumbs-->
       <ol class="breadcrumb">
         <li class="breadcrumb-item">
@@ -239,7 +242,7 @@
               <div class="card-body-icon">
                 <i class="fa fa-fw fa-comments"></i>
               </div>
-              <div class="mr-5">26 New Messages!</div>
+              <div class="mr-5">{{ reviews.11 }} New Reviews this Month!</div>
             </div>
             <a class="card-footer text-white clearfix small z-1" href="#">
               <span class="float-left">View Details</span>
@@ -301,18 +304,24 @@
       <!-- Area Chart Example-->
       <div class="card mb-3">
         <div class="card-header">
-          <i class="fa fa-area-chart"></i> Area Chart Example</div>
+          <i class="fa fa-area-chart"></i> Monthly Reviews</div>
         <div class="card-body">
           <canvas id="myAreaChart" width="100%" height="30"></canvas>
         </div>
-        <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+        <div class="card-footer small text-muted"></div>
       </div>
       <div class="row">
         <div class="col-lg-8">
           <!-- Example Bar Chart Card-->
           <div class="card mb-3">
             <div class="card-header">
-              <i class="fa fa-bar-chart"></i> Bar Chart Example</div>
+              <i class="fa fa-bar-chart"></i> Bar Chart Example
+              <select id="products-select" name="products" style="float: right;" onchange="changeData()">
+                {% for k in review_per_product.keys %}
+                  <option value="{{k}}">{{k}}</option>
+                {% endfor %}
+              </select>
+              </div>
             <div class="card-body">
               <div class="row">
                 <div class="col-sm-8 my-auto">
@@ -330,7 +339,7 @@
                 </div>
               </div>
             </div>
-            <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+            <div class="card-footer small text-muted"></div>
           </div>
           <!-- Card Columns Example Social Feed-->
           <div class="mb-0 mt-4">
@@ -528,11 +537,11 @@
           <!-- Example Pie Chart Card-->
           <div class="card mb-3">
             <div class="card-header">
-              <i class="fa fa-pie-chart"></i> Pie Chart Example</div>
+              <i class="fa fa-pie-chart"></i> Total Reviews per Product</div>
             <div class="card-body">
               <canvas id="myPieChart" width="100%" height="100"></canvas>
             </div>
-            <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+            <div class="card-footer small text-muted"></div>
           </div>
           <!-- Example Notifications Card-->
           <div class="card mb-3">
@@ -582,7 +591,7 @@
               </a>
               <a class="list-group-item list-group-item-action" href="#">View all activity...</a>
             </div>
-            <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+            <div class="card-footer small text-muted"></div>
           </div>
         </div>
       </div>
@@ -1074,7 +1083,7 @@
             </table>
           </div>
         </div>
-        <div class="card-footer small text-muted">Updated yesterday at 11:59 PM</div>
+        <div class="card-footer small text-muted"></div>
       </div>
     </div>
     <!-- /.container-fluid-->
@@ -1121,7 +1130,45 @@
     <script src="{% static 'js/sb-admin.min.js' %}"></script>
     <!-- Custom scripts for this page-->
     <script src="{% static 'js/sb-admin-datatables.min.js' %}"></script>
-    <script src="{% static 'js/sb-admin-charts.min.js' %}"></script>
+    <script type="text/javascript">
+        var footer_divs = document.getElementsByClassName("card-footer small text-muted");
+        var i;
+        for (i=0; i<footer_divs.length; i++){
+            footer_divs[i].innerHTML = "Updated at {{ last_update }}";
+        }
+        
+        var months = [];
+        {% for m in months %}
+            months.push('{{m}}');
+        {% endfor %}
+        var reviews = [];
+        {% for r in reviews %}
+            reviews.push({{r}});
+        {% endfor %}
+        var products = [];
+        var rev_per_product = [];
+        {% for mykey, myvalue in review_per_product.items %}
+            products.push('{{mykey}}');
+            rev_per_product.push({{myvalue|length}});
+        {% endfor %}
+        var star_ratings = ['1', '2', '3', '4', '5'];
+        var star_ratings_count = [0, 0, 0, 0, 0];
+    </script>
+    <script src="{% static 'js/sb-admin-charts.js' %}"></script>
+    <script type="text/javascript">
+        function changeData(){
+            var pSelect = document.getElementById("products-select");
+            var selected = pSelect.options[pSelect.selectedIndex].value;
+            {% for mykey, myvalue in review_per_product.items %}
+                {% for value in myvalue %}
+                    if(selected == '{{mykey}}')
+                        star_ratings_count[{{value.star_rating}}-1]++;
+                {% endfor %}
+            {% endfor %}
+            console.log(star_ratings_count);
+            drawSelectedChart();
+        }
+    </script>
   </div>
 </body>
 
