@@ -15,9 +15,9 @@ PRODUCTS = ["product-upsell", "product-discount", "store-locator",
 def last_twelve_months(review_list):
     d = {}
     for r in review_list:
-        r_date = datetime.strptime(r.created_at, FORMAT_TIME)
+        r_date = r.created_at
         if r.updated_at is not None:
-            r_date = datetime.strptime(r.updated_at, FORMAT_TIME)
+            r_date = r.updated_at
         if r_date > datetime.now(timezone.utc) - relativedelta(years=1):
             if calendar.month_name[r_date.month] in d:
                 d[calendar.month_name[r_date.month]] += 1
@@ -30,7 +30,6 @@ def index(request):
     review_per_product = {}
     for p in PRODUCTS:
         review_per_product[p] = Review.objects.filter(app_id__name=p)
-    print("################")
     dict_reviews = last_twelve_months(reviews)
     months = []
     month_reviews = []
@@ -47,9 +46,17 @@ def index(request):
     else:
         next_data_update_time = str((datetime.now() + relativedelta(minutes=30)).hour) + ":00"
         last_data_update_time += ":30"
-    print(last_data_update_time)
-    print(next_data_update_time)
-    return render(request, 'data_viewer/index.html', {'months': months, 'reviews': month_reviews, 'review_per_product': review_per_product, 'last_update': last_data_update_time, 'next_update': next_data_update_time})
+    latest_reviews = [r for r in Review.objects.order_by('-created_at')[:20]]
+    latest_updates = [u for u in Review.objects.order_by('-updated_at')[:20]]
+    aux = []
+    for review in latest_reviews:
+        if latest_updates[0].updated_at > review.created_at:
+            aux += latest_updates[:1]
+            latest_updates = latest_updates[1:]
+        else:
+            aux += [review]
+    return render(request, 'data_viewer/index.html', {'months': months, 'reviews': month_reviews, 'review_per_product': review_per_product,
+                    'last_update': last_data_update_time, 'next_update': next_data_update_time, 'latest_reviews': aux})
 
 def charts(request):
     return render(request, 'data_viewer/charts.html')

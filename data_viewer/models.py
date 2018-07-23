@@ -10,6 +10,6 @@ class Review(models.Model):
     previous_star_rating = models.IntegerField(blank=True, null=True)
     shop_domain = models.TextField()
     shop_name = models.TextField()
-    created_at = models.TextField()
-    updated_at = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField()
+    updated_at = models.DateTimeField(blank=True, null=True)
     app = models.ForeignKey(App, models.DO_NOTHING)

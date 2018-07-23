@@ -53,14 +53,15 @@ var myLineChart = new Chart(ctx, {
   }
 });
 // -- Bar Chart Example
+var myBarChart;
 function drawSelectedChart(){
     var ctx = document.getElementById("myBarChart");
-    var myLineChart = new Chart(ctx, {
+    myBarChart = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: star_ratings,
         datasets: [{
-          label: "Star Ratings",
+          label: "Reviews",
           backgroundColor: "rgba(2,117,216,1)",
           borderColor: "rgba(2,117,216,1)",
           data: star_ratings_count,
@@ -94,6 +95,10 @@ function drawSelectedChart(){
         }
       }
     });
+}
+function updateBarChart(new_data){
+    myBarChart.data.datasets[0].data = new_data;
+    myBarChart.update();
 }
 // -- Pie Chart Example
 var ctx = document.getElementById("myPieChart");

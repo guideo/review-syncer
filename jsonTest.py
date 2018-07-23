@@ -57,12 +57,14 @@ for p in PRODUCTS:
         for item in sys.exc_info():
             print("\t", item)
 DB_conn.commit()
+print("----------------------------------------\n\n\n\n\n\n")
 
 # Inserting each new review into review table
 while True:
+    print("Running at: {}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
     for p in PRODUCTS:
-        print("\n\n##########")
-        print(p)
+        print("\n##########")
+        print("Checking reviews for: " + p)
         with urllib.request.urlopen(BASE_URL.format(p)) as url:
             data = json.loads(url.read().decode())
             DB_cursor.execute("SELECT last_updated FROM data_viewer_app WHERE name=?", (p,))
@@ -74,7 +76,7 @@ while True:
             app_id = DB_cursor.fetchone()[0]
             new_reviews = []
             update_reviews = []
-            for d in data['reviews']:
+            for d in reversed(data['reviews']):
                 # Removing ':' from timestamp
                 date_val = d['created_at']
                 date_val = date_val[:date_val.rfind(':')] + date_val[date_val.rfind(':')+1:]
@@ -100,7 +102,13 @@ while True:
                 DB_conn.commit()
                 print("Inserted {} new reviews into {} project".format(len(new_reviews), p))
                 print("Updated {} reviews into {} project".format(len(update_reviews), p))
+        print("##########")
 
-    print("#############################\n\n\n\n\n")
-    print("Sleeping for 30 minutes")
-    time.sleep(1800)
+    print("\n\n#############################")
+    print("Sleeping until full or half hour (~30 mins)")
+    print("#############################\n\n")
+    # Sleep 2 minutes to avoid re-running on same minute
+    time.sleep(120)
+    # Wait until next full or half hour
+    while datetime.now().minute%30 != 0:
+        time.sleep(10)
