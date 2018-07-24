@@ -62,6 +62,8 @@ print("----------------------------------------\n\n\n\n\n\n")
 # Inserting each new review into review table
 while True:
     print("Running at: {}".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    total_new_reviews = 0
+    total_new_updates = 0
     for p in PRODUCTS:
         print("\n##########")
         print("Checking reviews for: " + p)
@@ -76,7 +78,7 @@ while True:
             app_id = DB_cursor.fetchone()[0]
             new_reviews = []
             update_reviews = []
-            for d in reversed(data['reviews']):
+            for d in data['reviews']:
                 # Removing ':' from timestamp
                 date_val = d['created_at']
                 date_val = date_val[:date_val.rfind(':')] + date_val[date_val.rfind(':')+1:]
@@ -85,25 +87,31 @@ while True:
                 if d_datetime > p_datetime:
                     entry = (d['body'], d['star_rating'], d['shop_domain'], d['shop_name'], date_val, app_id)
                     if isUpdate(entry):
-                        update_reviews += [entry]
+                        update_reviews.insert(0, entry)
                         DB_cursor.execute("SELECT star_rating FROM data_viewer_review WHERE shop_domain=? and app_id=?", (entry[2], app_id))
                         previous_star = DB_cursor.fetchone()[0]
                         DB_cursor.execute("UPDATE data_viewer_review SET body=?, star_rating=?, previous_star_rating=?, updated_at=? WHERE shop_domain=? and app_id=?", (entry[0], entry[1], previous_star, entry[4], entry[2], entry[5]))
                     else:
-                        new_reviews += [entry]
-                        DB_cursor.execute("INSERT INTO data_viewer_review(body, star_rating, shop_domain, shop_name, created_at, app_id) VALUES (?,?,?,?,?,?)", entry)
+                        new_reviews.insert(0, entry)
+                        #DB_cursor.execute("INSERT INTO data_viewer_review(body, star_rating, shop_domain, shop_name, created_at, app_id) VALUES (?,?,?,?,?,?)", entry)
                     # In order to get only the newest datetime among new reviews
                     if d_datetime > new_datetime:
                         new_datetime = d_datetime
                 else:
                     break
+            if len(new_reviews) > 0:
+                DB_cursor.executemany("INSERT INTO data_viewer_review(body, star_rating, shop_domain, shop_name, created_at, app_id) VALUES (?,?,?,?,?,?)", new_reviews)
             if len(new_reviews) > 0 or len(update_reviews) > 0:
                 DB_cursor.execute("UPDATE data_viewer_app SET last_updated=? WHERE name=?", (new_datetime.strftime(FORMAT_TIME), p))
                 DB_conn.commit()
                 print("Inserted {} new reviews into {} project".format(len(new_reviews), p))
+                total_new_reviews += len(new_reviews)
                 print("Updated {} reviews into {} project".format(len(update_reviews), p))
+                total_new_updates += len(update_reviews)
         print("##########")
 
+    print("\n\nTotal new Reviews: {}".format(total_new_reviews))
+    print("Total new Updates: {}".format(total_new_updates))
     print("\n\n#############################")
     print("Sleeping until full or half hour (~30 mins)")
     print("#############################\n\n")

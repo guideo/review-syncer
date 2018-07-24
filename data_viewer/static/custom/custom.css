@@ -1,0 +1,5 @@
+@font-face {
+  font-family: 'boldFont';
+  src: url('../custom/Powerweld.ttf');
+  src: url('../custom/Powerweld.ttf') format('truetype');
+}

@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="">
   <meta name="author" content="">
-  <title>SB Admin - Start Bootstrap Template</title>
+  <title>BOLD Reviews Information</title>
   <!-- Bootstrap core CSS-->
   <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
   <!-- Custom fonts for this template-->
@@ -17,17 +17,19 @@
   <link href="{% static 'vendor/datatables/dataTables.bootstrap4.css' %}" rel="stylesheet">
   <!-- Custom styles for this template-->
   <link href="{% static 'css/sb-admin.css' %}" rel="stylesheet">
+  <link href="{% static 'custom/custom.css' %}" rel="stylesheet">
 </head>
 
 <body class="fixed-nav sticky-footer bg-dark" id="page-top">
   <!-- Navigation-->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
-    <a class="navbar-brand" href="index.html">Start Bootstrap</a>
+    <!--<a style="padding: 10px 5px 0px 10px; font-family: boldFont; font-weight: 700; font-size: 200%; text-align: center; background-color: red; vertical-align: middle; text-decoration: none; color: white;" href="index.html">bold</a>-->
+    <a href="https://boldcommerce.com/" style="margin-left: 50px;"><img src="{% static 'custom/boldlogo.png' %}" width="112px" height="55px"></a>
     <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarResponsive">
-      <ul class="navbar-nav navbar-sidenav" id="exampleAccordion">
+      <ul class="navbar-nav navbar-sidenav" id="exampleAccordion" style="margin-top: 65px;">
         <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Dashboard">
           <a class="nav-link" href="index.html">
             <i class="fa fa-fw fa-dashboard"></i>
@@ -222,7 +224,7 @@
       </ul>
     </div>
   </nav>
-  <div class="content-wrapper">
+  <div class="content-wrapper" style="padding-top: 30px;">
     <div id="main-content" class="container-fluid">
       <!--<div id="loading-overlay" style="position: absolute; width: 100%; height: 100%; background-color: white; z-index: 10;">
         <img src="{% static 'custom/loading.gif' %}" alt="loading" style="margin-left: auto; margin-right: auto; display: block;"/>
@@ -232,72 +234,48 @@
         <li class="breadcrumb-item">
           <a href="#">Dashboard</a>
         </li>
-        <li class="breadcrumb-item active">My Dashboard</li>
+        <li class="breadcrumb-item active">Review Syncer -> Updated at {{ last_update }} - Next update scheduled for {{ next_update }}</li>
       </ol>
       <!-- Icon Cards-->
       <div class="row">
         <div class="col-xl-3 col-sm-6 mb-3">
-          <div class="card text-white bg-primary o-hidden h-100">
+          <div class="card text-white bg-primary o-hidden h-80">
             <div class="card-body">
               <div class="card-body-icon">
                 <i class="fa fa-fw fa-comments"></i>
               </div>
               <div class="mr-5">{{ reviews.11 }} New Reviews this Month!</div>
             </div>
-            <a class="card-footer text-white clearfix small z-1" href="#">
-              <span class="float-left">View Details</span>
-              <span class="float-right">
-                <i class="fa fa-angle-right"></i>
-              </span>
-            </a>
           </div>
         </div>
         <div class="col-xl-3 col-sm-6 mb-3">
-          <div class="card text-white bg-warning o-hidden h-100">
+          <div class="card text-white bg-success o-hidden h-80">
             <div class="card-body">
               <div class="card-body-icon">
-                <i class="fa fa-fw fa-list"></i>
+                <i class="fa fa-fw fa-check-square"></i>
               </div>
-              <div class="mr-5">11 New Tasks!</div>
+              <div class="mr-5">{{ reviews_per_rating.4|add:reviews_per_rating.3 }} Good Reviews!</div>
             </div>
-            <a class="card-footer text-white clearfix small z-1" href="#">
-              <span class="float-left">View Details</span>
-              <span class="float-right">
-                <i class="fa fa-angle-right"></i>
-              </span>
-            </a>
           </div>
         </div>
         <div class="col-xl-3 col-sm-6 mb-3">
-          <div class="card text-white bg-success o-hidden h-100">
+          <div class="card text-white bg-warning o-hidden h-80">
             <div class="card-body">
               <div class="card-body-icon">
-                <i class="fa fa-fw fa-shopping-cart"></i>
+                <i class="fa fa-fw fa-exclamation-triangle"></i>
               </div>
-              <div class="mr-5">123 New Orders!</div>
+              <div class="mr-5">{{ reviews_per_rating.2 }} Regular Reviews</div>
             </div>
-            <a class="card-footer text-white clearfix small z-1" href="#">
-              <span class="float-left">View Details</span>
-              <span class="float-right">
-                <i class="fa fa-angle-right"></i>
-              </span>
-            </a>
           </div>
         </div>
         <div class="col-xl-3 col-sm-6 mb-3">
-          <div class="card text-white bg-danger o-hidden h-100">
+          <div class="card text-white bg-danger o-hidden h-80">
             <div class="card-body">
               <div class="card-body-icon">
-                <i class="fa fa-fw fa-support"></i>
+                <i class="fa fa-fw fa-times-circle"></i>
               </div>
-              <div class="mr-5">13 New Tickets!</div>
+              <div class="mr-5">{{ reviews_per_rating.1|add:reviews_per_rating.0 }} Bad Reviews</div>
             </div>
-            <a class="card-footer text-white clearfix small z-1" href="#">
-              <span class="float-left">View Details</span>
-              <span class="float-right">
-                <i class="fa fa-angle-right"></i>
-              </span>
-            </a>
           </div>
         </div>
       </div>
@@ -384,11 +362,11 @@
                 {% if not review.updated_at %}
                     <div style="text-decoration: underline;"><strong>{{ review.shop_domain }}</strong> posted a new review for <strong>{{ review.app.name }}</strong>:</div>
                     <div class="text-muted">{{ review.body|truncatechars:120 }}</div>
-                    <div class="text-muted smaller">Created on {{ review.created_at|date:'F d' }} at {{ review.created_at|date:'H:i' }}</div>
+                    <div class="text-muted smaller">Created on {{ review.created_at|date:'Y F d' }} at {{ review.created_at|date:'H:i' }}</div>
                 {% else %}
                     <div style="text-decoration: underline;"><strong>{{ review.shop_domain }}</strong> updated a review for <strong>{{ review.app.name }}</strong>:</div>
                     <div class="text-muted">{{ review.body|truncatechars:120 }}</div>
-                    <div class="text-muted smaller">Updated on {{ review.updated_at|date:'F d' }} at {{ review.updated_at|date:'H:i' }}</div>
+                    <div class="text-muted smaller">Updated on {{ review.updated_at|date:'Y F d' }} at {{ review.updated_at|date:'H:i' }}</div>
                 {% endif %}
               </div>
             </div>
