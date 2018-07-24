@@ -381,9 +381,15 @@
                 {{ review.star_rating }}<i class="fa fa-star" style="margin-left: 2px;"></i></span>
               </div>
               <div class="media-body">
-                <div style="text-decoration: underline;"><strong>{{ review.shop_domain }}</strong> posted a new review for <strong>{{ review.app.name }}</strong>:</div>
-                <div class="text-muted">{{ review.body|truncatechars:120 }}</div>
-                <div class="text-muted smaller">Created on {{ review.created_at|date:'F d' }} at {{ review.created_at|date:'H:i' }}</div>
+                {% if not review.updated_at %}
+                    <div style="text-decoration: underline;"><strong>{{ review.shop_domain }}</strong> posted a new review for <strong>{{ review.app.name }}</strong>:</div>
+                    <div class="text-muted">{{ review.body|truncatechars:120 }}</div>
+                    <div class="text-muted smaller">Created on {{ review.created_at|date:'F d' }} at {{ review.created_at|date:'H:i' }}</div>
+                {% else %}
+                    <div style="text-decoration: underline;"><strong>{{ review.shop_domain }}</strong> updated a review for <strong>{{ review.app.name }}</strong>:</div>
+                    <div class="text-muted">{{ review.body|truncatechars:120 }}</div>
+                    <div class="text-muted smaller">Updated on {{ review.updated_at|date:'F d' }} at {{ review.updated_at|date:'H:i' }}</div>
+                {% endif %}
               </div>
             </div>
           </a>
