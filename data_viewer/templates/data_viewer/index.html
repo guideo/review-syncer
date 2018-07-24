@@ -362,10 +362,14 @@
         <div class="list-group list-group-flush small">
           {% for review in latest_reviews %}
           <a class="list-group-item list-group-item-action" href="#">
+            {% if review.star_rating == 1 or review.star_rating == 2 %}
+            <div style="position: absolute; top: 0; left: 0; height: 100%; width: 20px; background-color: #dc3545; margin-bottom: -1px;
+                        border-top-right-radius: 5px; border-bottom-right-radius: 5px;"></div>
+            <div class="media" style="margin-left: 20px;">
+            {% else %}
             <div class="media">
-              {% if review.star_rating == 1 or review.star_rating == 2 %}
-              <div style="left: 0px; top: 0px; height: 100%; width: 20px; background-color: #dc3545; margin-right: 20px;"></div>
-              {% endif %}
+            {% endif %}
+
               <div style="margin: 8px 15px 0px -10px;">
                 {% if review.star_rating == 5 or review.star_rating == 4 %}
                 <span style="font-size: 200%; color: #28a745;">
@@ -439,7 +443,7 @@
         for (i=0; i<footer_divs.length; i++){
             footer_divs[i].innerHTML = "Updated at {{ last_update }}";
         }
-        
+
         var months = [];
         {% for m in months %}
             months.push('{{m}}');
