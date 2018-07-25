@@ -19,7 +19,10 @@ def last_twelve_months(review_list):
         r_date = r.created_at
         if r.updated_at is not None:
             r_date = r.updated_at
-        if r_date > datetime.now(timezone.utc) - relativedelta(years=1):
+        next_month = (datetime.now(timezone.utc) + relativedelta(months=1)).month
+        last_year = (datetime.now(timezone.utc) - relativedelta(years=1)).year
+        next_month_last_year = datetime(last_year, next_month, 1, tzinfo=timezone.utc)
+        if r_date > datetime.now(timezone.utc) - relativedelta(years=1) and r_date > next_month_last_year:
             if calendar.month_name[r_date.month] in d:
                 d[calendar.month_name[r_date.month]] += [r]
             else:
@@ -38,10 +41,6 @@ def index(request):
     for key in dict_reviews.keys():
         months += [key]
         month_reviews += [len(dict_reviews[key])]
-    # Month names for the chart legend
-    months = list(reversed(months))
-    # Montly reviews (number)
-    month_reviews = list(reversed(month_reviews))
     
     # Count number of reviews per star from this month
     this_month = calendar.month_name[datetime.now().month]
@@ -68,25 +67,38 @@ def index(request):
     while len(aux) < reviews_to_display:
         # If review was already added (can happen if review was both created and updated recently), remove from list and go to next iteration
         if latest_reviews[0] in aux:
-            print('remove review')
             latest_reviews = latest_reviews[1:]
             continue
         if latest_updates[0] in aux:
-            print('remove update')
             latest_updates = latest_updates[1:]
             continue
         # If review in updated_list was updated earlier then created review from created_list
         if latest_updates[0].updated_at > latest_reviews[0].created_at:
             aux += latest_updates[:1]
             latest_updates = latest_updates[1:]
-            print('if')
         else:
             aux += [latest_reviews[0]]
             latest_reviews = latest_reviews[1:]
-            print('else')
     
     return render(request, 'data_viewer/index.html', {'months': months, 'reviews': month_reviews, 'reviews_per_rating': reviews_per_rating, 'review_per_product': review_per_product,
                     'last_update': last_data_update_time, 'next_update': next_data_update_time, 'latest_reviews': aux})
 
 def charts(request):
     return render(request, 'data_viewer/charts.html')
+
+def monthlyreviews(request):
+    term = request.GET.get('term', '')
+    monthly_reviews = last_twelve_months(Review.objects.all())[calendar.month_name[datetime.now(timezone.utc).month]]
+    from operator import attrgetter
+    if term == 'good_reviews':
+        monthly_reviews = [r for r in monthly_reviews if r.star_rating >= 4]
+        print(len(monthly_reviews))
+    elif term == 'regular_reviews':
+        monthly_reviews = [r for r in monthly_reviews if r.star_rating == 3]
+        print(len(monthly_reviews))
+    elif term == 'bad_reviews':
+        monthly_reviews = [r for r in monthly_reviews if r.star_rating <= 2]
+        print(len(monthly_reviews))
+    else:
+        print(len(monthly_reviews))
+    return render(request, 'data_viewer/monthlyreviews.html', {'monthly_reviews': monthly_reviews})
