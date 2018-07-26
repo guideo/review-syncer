@@ -41,8 +41,8 @@
               <td>{{ review.shop_name }}</td>
               <td>{{ review.app.name }}</td>
               <td>{{ review.body|truncatechars:100 }}</td>
-              <td>{{ review.created_at }}</td>
-              <td>{{ review.updated_at }}</td>
+              <td><span style="display: none;">{{ review.created_at|date:"dmYGis" }}</span>{{ review.created_at }}</td>
+              <td><span style="display: none;">{{ review.updated_at|date:"dmYGis" }}</span>{{ review.updated_at }}</td>
             </tr>
           {% endfor %}
           </tbody>
@@ -51,10 +51,12 @@
     </div>
     <div class="card-footer small text-muted"></div>
 </div>
-<script type="text/javascript">
+
+<script type="text/javascript" class="init">
 $(document).ready(function() {
     $('#dataTable').DataTable( {
-        "order": [[ 0, "desc" ]]
+        "order": [[ 4, "asc" ]],
+        "bDestroy": true
     } );
 } );
 </script>
