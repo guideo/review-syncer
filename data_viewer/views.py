@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.http import HttpResponse
+import re
 import sqlite3
 from .models import App, Review
 from datetime import datetime, timezone
@@ -83,9 +85,6 @@ def index(request):
     return render(request, 'data_viewer/index.html', {'months': months, 'reviews': month_reviews, 'reviews_per_rating': reviews_per_rating, 'review_per_product': review_per_product,
                     'last_update': last_data_update_time, 'next_update': next_data_update_time, 'latest_reviews': aux})
 
-def charts(request):
-    return render(request, 'data_viewer/charts.html')
-
 def monthlyreviews(request):
     term = request.GET.get('term', '')
     monthly_reviews = last_twelve_months(Review.objects.all())[calendar.month_name[datetime.now(timezone.utc).month]]
@@ -102,3 +101,48 @@ def monthlyreviews(request):
     else:
         print(len(monthly_reviews))
     return render(request, 'data_viewer/monthlyreviews.html', {'monthly_reviews': monthly_reviews})
+
+def reviews(request):
+    #reviews = Review.objects.all()
+    json_reviews = ''
+    '''
+    json_reviews += '{"reviews":['
+    for idx, r in enumerate(reviews):
+        body_text = r.body.replace('"', '').replace("'", "").replace('\n', '').replace('\r', '').replace('\\', '\\\\\\\\').replace('\t', ' ')
+        body_text = re.sub(r'[^\x00-\x7f]',r'', body_text)
+        shop_name = r.shop_name.replace('"', '').replace("'", "").replace('\n', '').replace('\r', '')
+        date_created = r.created_at
+        date_updated = r.updated_at
+        json_reviews += ('{{"star_rating":"{}","shop_name":"{}","product":"{}","body":"{}","created_at":"{}","updated_at":"{}"}}').format(r.star_rating, shop_name, r.app.name, body_text, date_created, date_updated)
+        if idx != len(reviews)-1:
+            json_reviews += ','
+    json_reviews += ']}'
+    '''
+    
+    return render(request, 'data_viewer/reviews.html', {'json_reviews': json_reviews})
+
+def reviews_json(request):
+    reviews = Review.objects.all()
+    json_reviews = ''
+    json_reviews += '{"reviews":['
+    for idx, r in enumerate(reviews):
+        body_text = r.body.replace('"', '').replace("'", "").replace('\n', '').replace('\r', '').replace('\\', '\\\\\\\\').replace('\t', ' ')
+        body_text = re.sub(r'[^\x00-\x7f]',r'', body_text)
+        shop_name = r.shop_name.replace('"', '').replace("'", "").replace('\n', '').replace('\r', '')
+        date_created = r.created_at.strftime('%B %d, %Y, %H:%M')
+        created_at_sort = r.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        if r.updated_at:
+            date_updated = r.updated_at.strftime('%B %d, %Y, %H:%M')
+            updated_at_sort = r.updated_at.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            date_updated = None
+            updated_at_sort = None
+        json_reviews += ('{{"star_rating":"{}","shop_name":"{}","product":"{}","body":"{}","created_at":"{}","updated_at":"{}","created_at_sort":"{}","updated_at_sort":"{}"}}').format(r.star_rating, shop_name, r.app.name, body_text, date_created, date_updated, created_at_sort, updated_at_sort)
+        if idx != len(reviews)-1:
+            json_reviews += ','
+    json_reviews += ']}'
+    
+    return HttpResponse(json_reviews)
+
+def insight(request):
+    return render(request, 'data_viewer/insight.html')
