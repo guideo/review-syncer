@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 import re
+from django.db.models import Count, Q
 from .models import App, Review
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
@@ -30,6 +31,14 @@ def last_twelve_months(review_list):
                 d[calendar.month_name[r_date.month]] = []
                 d[calendar.month_name[r_date.month]] += [r]
     return d
+
+def rating_to_name(rating):
+    if rating == 1 or rating == 2:
+        return 'bad'
+    elif rating == 3:
+        return 'regular'
+    else:
+        return 'good'
 
 def index(request):
     reviews = Review.objects.all()
@@ -101,23 +110,7 @@ def monthlyreviews(request):
     return render(request, 'data_viewer/monthlyreviews.html', {'monthly_reviews': monthly_reviews})
 
 def reviews(request):
-    #reviews = Review.objects.all()
-    json_reviews = ''
-    '''
-    json_reviews += '{"reviews":['
-    for idx, r in enumerate(reviews):
-        body_text = r.body.replace('"', '').replace("'", "").replace('\n', '').replace('\r', '').replace('\\', '\\\\\\\\').replace('\t', ' ')
-        body_text = re.sub(r'[^\x00-\x7f]',r'', body_text)
-        shop_name = r.shop_name.replace('"', '').replace("'", "").replace('\n', '').replace('\r', '')
-        date_created = r.created_at
-        date_updated = r.updated_at
-        json_reviews += ('{{"star_rating":"{}","shop_name":"{}","product":"{}","body":"{}","created_at":"{}","updated_at":"{}"}}').format(r.star_rating, shop_name, r.app.name, body_text, date_created, date_updated)
-        if idx != len(reviews)-1:
-            json_reviews += ','
-    json_reviews += ']}'
-    '''
-
-    return render(request, 'data_viewer/reviews.html', {'json_reviews': json_reviews})
+    return render(request, 'data_viewer/reviews.html')
 
 def reviews_json(request):
     reviews = Review.objects.all()
@@ -145,9 +138,31 @@ def reviews_json(request):
 def insight(request):
     products = App.objects.all()
     products = [product.name for product in products]
-    return render(request, 'data_viewer/insight.html', {'products':products})
+    
+    distinct_users = Review.objects.values('shop_domain').distinct()
+    this_month = datetime(datetime.now(timezone.utc).year, datetime.now(timezone.utc).month, 1, tzinfo=timezone.utc)
+    users_with_multiple_products = Review.objects.values('shop_domain').annotate(Count('shop_domain')).order_by('shop_domain__count').filter(shop_domain__count__gt=1)
+    distinct_new_users = Review.objects.filter(Q(created_at__lt=this_month)).values('shop_domain').distinct()
+    distinct_new_users = len(distinct_users)-len(distinct_new_users)
+    
+    return render(request, 'data_viewer/insight.html', {'products':products, 'distinct_users':len(distinct_users), 'multiple_product_users':len(users_with_multiple_products), 'new_users':distinct_new_users})
 
 def insight_data(request):
+    # Search for key words in reviews
+    key_words_group = {"support": ["support", "chat", "service"], "setup": ["setup", "install"], "price":["good price", "expensive"]}
+    ratings_analysis = {"bad":{}, "regular":{}, "good":{}}
+    for key in key_words_group:
+        ratings_analysis["bad"][key] = 0
+        ratings_analysis["regular"][key] = 0
+        ratings_analysis["good"][key] = 0
+    
     product = request.GET.get('product', '')
+    reviews = Review.objects.filter(app_id__name=product)
+    for r in reviews:
+        for key, word_list in key_words_group.items():
+            if any(word in r.body for word in word_list):
+                ratings_analysis[rating_to_name(r.star_rating)][key] += 1
+    print(ratings_analysis)
+        
     response = 'insight_data response: ' + product
     return HttpResponse(response)

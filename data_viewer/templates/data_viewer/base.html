@@ -208,50 +208,6 @@
     </div>
     </div>
   </div>
-    <script type="text/javascript">
-                var months = [];
-        {% for m in months %}
-            months.push('{{m}}');
-        {% endfor %}
-        var reviews = [];
-        {% for r in reviews %}
-            reviews.push({{r}});
-        {% endfor %}
-        var products = [];
-        var rev_per_product = [];
-        {% for mykey, myvalue in review_per_product.items %}
-            products.push('{{mykey}}');
-            rev_per_product.push({{myvalue|length}});
-        {% endfor %}
-        var star_ratings = ['1', '2', '3', '4', '5'];
-        var star_ratings_count = [0, 0, 0, 0, 0];
-    </script>
-    <script src="{% static 'js/sb-admin-charts.js' %}"></script>
-    <script type="text/javascript">
-        drawSelectedChart();
-        changeData();
-        function changeData(){
-            var pSelect = document.getElementById("products-select");
-            var selected = pSelect.options[pSelect.selectedIndex].value;
-            document.getElementById("product-name").innerHTML = selected;
-            star_ratings_count = [0, 0, 0, 0, 0];
-            {% for mykey, myvalue in review_per_product.items %}
-                {% for value in myvalue %}
-                    if(selected == '{{mykey}}')
-                        star_ratings_count[{{value.star_rating}}-1]++;
-                {% endfor %}
-            {% endfor %}
-            var totalReviews = star_ratings_count.reduce((a, b) => a + b, 0);
-            var goodReviews = star_ratings_count[4] + star_ratings_count[3];
-            var regularReviews = star_ratings_count[2];
-            var badReviews = star_ratings_count[0] + star_ratings_count[1];
-            document.getElementById("good-reviews").innerHTML = goodReviews + " (" + (goodReviews*100/totalReviews).toFixed(2) + "%)";
-            document.getElementById("regular-reviews").innerHTML = regularReviews + " (" + (regularReviews*100/totalReviews).toFixed(2) + "%)";
-            document.getElementById("bad-reviews").innerHTML = badReviews + " (" + (badReviews*100/totalReviews).toFixed(2) + "%)";
-            console.log(goodReviews + " - " + regularReviews + " - " + badReviews + " - " + totalReviews);
-            updateBarChart(star_ratings_count);
-        }
-    </script>
 </body>
 
 </html>
