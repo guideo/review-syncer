@@ -10,7 +10,7 @@
 </ol>
 <div class="card mb-3">
     <div class="card-header">
-      <i class="fa fa-table"></i> Data Table Example</div>
+      <i class="fa fa-table"></i> All Reviews</div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -72,11 +72,11 @@ $(document).ready(function() {
     $.get("/reviews_json", function(result){
         var obj = JSON.parse(result);
         console.log(obj.reviews.length);
-        
+
         var data = [];
         for ( var i=0 ; i<obj.reviews.length ; i++ ) {
             data.push([obj.reviews[i].star_rating, obj.reviews[i].shop_name, obj.reviews[i].product, obj.reviews[i].body,
-                      '<span style="display: none;">'+obj.reviews[i].created_at_sort+'</span>'+obj.reviews[i].created_at, 
+                      '<span style="display: none;">'+obj.reviews[i].created_at_sort+'</span>'+obj.reviews[i].created_at,
                       '<span style="display: none;">'+obj.reviews[i].updated_at_sort+'</span>'+obj.reviews[i].updated_at]);
         }
 
@@ -84,7 +84,7 @@ $(document).ready(function() {
             var title = $(this).text();
             $(this).html( '<input type="text" placeholder="Search '+title+'" />' );
         } );
-         
+
         $('#dataTable').DataTable( {
             "order": [[ 4, "asc" ]],
             "bDestroy": true,
@@ -116,7 +116,7 @@ $(document).ready(function() {
                 } );
                 this.api().columns('.has_text_filter').every( function () {
                     var that = this;
-             
+
                     $( 'input', this.footer() ).on( 'keyup change', function () {
                         if ( that.search() !== this.value ) {
                             that

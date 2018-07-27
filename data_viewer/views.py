@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 import re
-import sqlite3
 from .models import App, Review
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
@@ -43,13 +42,13 @@ def index(request):
     for key in dict_reviews.keys():
         months += [key]
         month_reviews += [len(dict_reviews[key])]
-    
+
     # Count number of reviews per star from this month
     this_month = calendar.month_name[datetime.now().month]
     reviews_per_rating = [0, 0, 0, 0, 0]
     for review in dict_reviews[this_month]:
         reviews_per_rating[review.star_rating-1] += 1
-    
+
     # Last time database was probably updated
     last_data_update_time = str(datetime.now().hour)
     # Next update time
@@ -60,7 +59,7 @@ def index(request):
     else:
         next_data_update_time = str((datetime.now() + relativedelta(minutes=30)).hour) + ":00"
         last_data_update_time += ":30"
-    
+
     # Retrieving info to display on index Review session
     reviews_to_display = 5
     latest_reviews = [r for r in Review.objects.order_by('-created_at')[:reviews_to_display]]
@@ -81,14 +80,13 @@ def index(request):
         else:
             aux += [latest_reviews[0]]
             latest_reviews = latest_reviews[1:]
-    
+
     return render(request, 'data_viewer/index.html', {'months': months, 'reviews': month_reviews, 'reviews_per_rating': reviews_per_rating, 'review_per_product': review_per_product,
                     'last_update': last_data_update_time, 'next_update': next_data_update_time, 'latest_reviews': aux})
 
 def monthlyreviews(request):
     term = request.GET.get('term', '')
     monthly_reviews = last_twelve_months(Review.objects.all())[calendar.month_name[datetime.now(timezone.utc).month]]
-    from operator import attrgetter
     if term == 'good_reviews':
         monthly_reviews = [r for r in monthly_reviews if r.star_rating >= 4]
         print(len(monthly_reviews))
@@ -118,7 +116,7 @@ def reviews(request):
             json_reviews += ','
     json_reviews += ']}'
     '''
-    
+
     return render(request, 'data_viewer/reviews.html', {'json_reviews': json_reviews})
 
 def reviews_json(request):
@@ -141,8 +139,15 @@ def reviews_json(request):
         if idx != len(reviews)-1:
             json_reviews += ','
     json_reviews += ']}'
-    
+
     return HttpResponse(json_reviews)
 
 def insight(request):
-    return render(request, 'data_viewer/insight.html')
+    products = App.objects.all()
+    products = [product.name for product in products]
+    return render(request, 'data_viewer/insight.html', {'products':products})
+
+def insight_data(request):
+    product = request.GET.get('product', '')
+    response = 'insight_data response: ' + product
+    return HttpResponse(response)

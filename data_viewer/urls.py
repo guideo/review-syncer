@@ -10,4 +10,5 @@ urlpatterns = [
     path('reviews/', views.reviews, name='reviews'),
     path('reviews_json/', views.reviews_json, name='reviews_json'),
     path('insight/', views.insight, name='insight'),
+    path('insight_data/', views.insight_data, name='insight_data'),
 ]

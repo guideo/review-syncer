@@ -209,13 +209,7 @@
     </div>
   </div>
     <script type="text/javascript">
-        var footer_divs = document.getElementsByClassName("card-footer small text-muted");
-        var i;
-        for (i=0; i<footer_divs.length; i++){
-            footer_divs[i].innerHTML = "Updated at {{ last_update }}";
-        }
-
-        var months = [];
+                var months = [];
         {% for m in months %}
             months.push('{{m}}');
         {% endfor %}

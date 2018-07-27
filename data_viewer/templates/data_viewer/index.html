@@ -157,4 +157,11 @@
     <div class="card-footer small text-muted"></div>
   </div>
   </div>
+  <script>
+        var footer_divs = document.getElementsByClassName("card-footer small text-muted");
+        var i;
+        for (i=0; i<footer_divs.length; i++){
+            footer_divs[i].innerHTML = "Updated at {{ last_update }}";
+        }
+  </script>
 {% endblock %}
