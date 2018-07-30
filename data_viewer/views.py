@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 import re
+import json
+import operator
 from django.db.models import Count, Q
 from .models import App, Review
 from datetime import datetime, timezone
@@ -147,9 +149,19 @@ def insight(request):
     
     return render(request, 'data_viewer/insight.html', {'products':products, 'distinct_users':len(distinct_users), 'multiple_product_users':len(users_with_multiple_products), 'new_users':distinct_new_users})
 
+def normalize_array(arr):
+    total = 0
+    for i in arr:
+        total += i
+    new_arr = []
+    for i in arr:
+        new_arr.append(i*100/total)
+    return new_arr
+
 def insight_data(request):
     # Search for key words in reviews
-    key_words_group = {"support": ["support", "chat", "service"], "setup": ["setup", "install"], "price":["good price", "expensive"]}
+    # atest is there just as an example of future adds, which will not appear on the Webpage since it only shows the 3 top groups of words
+    key_words_group = {"support": ["support", "chat", "service"], "setup": ["setup", "install"], "price": ["good price", "expensive", "worth"], "atest": ["--this should never", "show up--"]}
     ratings_analysis = {"bad":{}, "regular":{}, "good":{}}
     for key in key_words_group:
         ratings_analysis["bad"][key] = 0
@@ -158,11 +170,30 @@ def insight_data(request):
     
     product = request.GET.get('product', '')
     reviews = Review.objects.filter(app_id__name=product)
+    reviews_per_rating = [0, 0, 0, 0, 0]
+    total_reviews = len(reviews)
     for r in reviews:
+        reviews_per_rating[r.star_rating-1] += 1
         for key, word_list in key_words_group.items():
             if any(word in r.body for word in word_list):
                 ratings_analysis[rating_to_name(r.star_rating)][key] += 1
-    print(ratings_analysis)
+    top_issues = sorted(ratings_analysis['bad'].items(), key=operator.itemgetter(1, 0), reverse=True)[0:3]
+    
+    last_year_reviews = last_twelve_months(reviews)
+    last_year_reviews_per_rating = {}
+    months = []
+    for key in last_year_reviews.keys():
+        months += [key]
+        last_year_reviews_per_rating[key] = [0, 0, 0, 0, 0]
+    for key in last_year_reviews.keys():
+        for val in last_year_reviews[key]:
+            last_year_reviews_per_rating[key][val.star_rating-1] += 1
+
+    normalized_reviews = {}
+    for key in last_year_reviews_per_rating:
+        normalized_reviews[key] = normalize_array(last_year_reviews_per_rating[key])
+    
+    response_dict = {'reviews_per_rating': reviews_per_rating, 'top_issues': top_issues, 'total_reviews': total_reviews, 'months': months, 'normalized_reviews': normalized_reviews}
         
     response = 'insight_data response: ' + product
-    return HttpResponse(response)
+    return HttpResponse(json.dumps(response_dict))

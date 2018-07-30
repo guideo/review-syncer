@@ -1,4 +1,5 @@
 {% extends 'data_viewer/base.html' %}
+{% load static %}
 
 {% block content %}
 <!-- Breadcrumbs-->
@@ -40,15 +41,8 @@
       </div>
     </div>
 </div>
-<div class="card mb-3">
-    <div class="card-header">
-      <i class="fa fa-area-chart"></i> Monthly Reviews</div>
-    <div class="card-body">
-      <canvas id="myAreaChart" width="100%" height="30"></canvas>
-    </div>
-    <div class="card-footer small text-muted"></div>
-</div>
-<div class="card">
+
+<div class="card col-xl-12">
     <div class="card-header">
       <!--<i class="fa fa-info"></i>--> Select a Product:
       <select id="products-select" name="products" style="margin-left: 20px;" onchange="changeInsight()">
@@ -56,24 +50,77 @@
           <option value="{{product}}">{{product}}</option>
         {% endfor %}
       </select>
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-sm-12 my-auto">
-          
+    
+    
+        <div class="card-header" style="margin-top: 20px;">
+          <i class="fa fa-bar-chart"></i> Reviews per Rating
         </div>
-      </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-sm-8 my-auto">
+              <div id="product-name" style="margin-top: -15px; margin-bottom: 20px; font-weight: 500; font-size: 130%; color:#404040;"></div>
+              <div id="text1" class="h4 mb-0 text-primary" style="padding-bottom: 20px;"></div>
+              <div id="text2" class="h5 mb-0 text-success"></div>
+              <hr>
+              <div id="text3" class="h4 mb-0 text-primary" style="padding-bottom: 20px;"></div>
+              <div id="text4" class="h5 mb-0 text-danger"></div>
+            </div>
+            <div class="col-sm-4 my-auto">
+              <canvas id="pieChart1" height="120vh" style="margin-top: 0px;"></canvas>
+              <canvas id="pieChart2" height="120vh" style="margin-top: 50px;"></canvas>
+            </div>
+          </div>
+        </div>
+    
+        <div class="card-header">
+          <i class="fa fa-area-chart"></i> Reviews Trend</div>
+        <div class="card-body">
+          <canvas id="areaChart" width="100%" height="30"></canvas>
+        </div>
     </div>
     <div class="card-footer small text-muted"></div>
 </div>
 
+<script src="{% static 'custom/insight-charts.js' %}"></script>
 <script>
+    pie1Labels = ['Good', 'Regular', 'Bad'];
+    pie1Values = [0, 0, 0];
+    pie2Labels = ['', '', ''];
+    pie2Values = [0, 0, 0];
+    drawPieChart1('pieChart1', pie1Labels, pie1Values);
+    drawPieChart2('pieChart2', pie2Labels, pie2Values);
+    
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+    
     function changeInsight(){
-        var product = $('#products-select').find(":selected").text();
+        var product = $('#products-select').find(':selected').text();
         console.log(product);
-        $.get("/insight_data/?product="+product, function(result){
+        $.get('/insight_data/?product='+product, function(result){
             console.log(result);
+            var obj = JSON.parse(result);
+
+            $('#product-name').html(' Showing insight for: <b><u>' + product + '</b></u>');
+            $('#text1').html('There are a total of <span style="color: #2020A0;">' + obj.total_reviews + '</span> reviews for this product:');
+            $('#text2').html('<div style="min-width: 200px; display:inline-block;">Good reviews: </div>' + (parseInt(obj.reviews_per_rating[3]) + parseInt(obj.reviews_per_rating[4])) + '<br>' +
+                                '<div style="min-width: 200px; display:inline-block;">Regular reviews: </div>' + (parseInt(obj.reviews_per_rating[2])) + '<br>' + 
+                                '<div style="min-width: 200px; display:inline-block;">Bad reviews: </div>' + (parseInt(obj.reviews_per_rating[0]) + parseInt(obj.reviews_per_rating[1])) + '<br>');
+            $('#text3').html('Out of bad reviews, this were the biggest complaints:');
+            $('#text4').html('<div style="min-width: 200px; display:inline-block;">' + capitalizeFirstLetter(obj.top_issues[0][0]) + ' complaints: </div>' + obj.top_issues[0][1] + '<br>' + 
+                                '<div style="min-width: 200px; display:inline-block;">' + capitalizeFirstLetter(obj.top_issues[1][0]) + ' complaints: </div>' + obj.top_issues[1][1] + '<br>' + 
+                                '<div style="min-width: 200px; display:inline-block;">' + capitalizeFirstLetter(obj.top_issues[2][0]) + ' complaints: </div>' + obj.top_issues[2][1]);
+            
+            pie1Values = [(parseInt(obj.reviews_per_rating[3]) + parseInt(obj.reviews_per_rating[4])), (parseInt(obj.reviews_per_rating[2])), (parseInt(obj.reviews_per_rating[0]) + parseInt(obj.reviews_per_rating[1]))];
+            pie2Labels = [capitalizeFirstLetter(obj.top_issues[0][0]), capitalizeFirstLetter(obj.top_issues[1][0]), capitalizeFirstLetter(obj.top_issues[2][0])]
+            pie2Values = [(parseInt(obj.top_issues[0][1])), (parseInt(obj.top_issues[1][1])), (parseInt(obj.top_issues[2][1]))]
+            console.log(pie2Labels);
+            console.log(pie2Values);
+            updatePieChart1(pie1Values);
+            updatePieChart2(pie2Labels, pie2Values);
         });
     }
+    
+    changeInsight();
 </script>
 {% endblock %}
