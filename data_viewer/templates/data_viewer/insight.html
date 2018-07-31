@@ -75,7 +75,7 @@
         <div class="card-header">
           <i class="fa fa-area-chart"></i> Reviews Trend</div>
         <div class="card-body">
-          <canvas id="areaChart" width="100%" height="30"></canvas>
+          <canvas id="lineChart" width="100%" height="30"></canvas>
         </div>
     </div>
     <div class="card-footer small text-muted"></div>
@@ -85,10 +85,13 @@
 <script>
     pie1Labels = ['Good', 'Regular', 'Bad'];
     pie1Values = [0, 0, 0];
+    drawPieChart1('pieChart1', pie1Labels, pie1Values);
     pie2Labels = ['', '', ''];
     pie2Values = [0, 0, 0];
-    drawPieChart1('pieChart1', pie1Labels, pie1Values);
     drawPieChart2('pieChart2', pie2Labels, pie2Values);
+    lineLabels = ['', '', '', '', '', '', '', '', '', '', '', ''];
+    lineData = [0,0,0,0,0,0,0,0,0,0,0,0];
+    drawLineChart(lineLabels, lineData);
     
     function capitalizeFirstLetter(string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
@@ -96,9 +99,7 @@
     
     function changeInsight(){
         var product = $('#products-select').find(':selected').text();
-        console.log(product);
         $.get('/insight_data/?product='+product, function(result){
-            console.log(result);
             var obj = JSON.parse(result);
 
             $('#product-name').html(' Showing insight for: <b><u>' + product + '</b></u>');
@@ -114,10 +115,22 @@
             pie1Values = [(parseInt(obj.reviews_per_rating[3]) + parseInt(obj.reviews_per_rating[4])), (parseInt(obj.reviews_per_rating[2])), (parseInt(obj.reviews_per_rating[0]) + parseInt(obj.reviews_per_rating[1]))];
             pie2Labels = [capitalizeFirstLetter(obj.top_issues[0][0]), capitalizeFirstLetter(obj.top_issues[1][0]), capitalizeFirstLetter(obj.top_issues[2][0])]
             pie2Values = [(parseInt(obj.top_issues[0][1])), (parseInt(obj.top_issues[1][1])), (parseInt(obj.top_issues[2][1]))]
-            console.log(pie2Labels);
-            console.log(pie2Values);
             updatePieChart1(pie1Values);
             updatePieChart2(pie2Labels, pie2Values);
+            
+            var months_and_values = []
+            for (var i in obj.months){
+                months_and_values.push([obj.months[i], 'Total: ' + obj.monthly_total[i]]);
+            }
+            var good_reviews = [];
+            var regular_reviews = [];
+            var bad_reviews = [];
+            for (const [key, value] of Object.entries(obj.normalized_reviews)) {
+                good_reviews.push((value[3]+value[4]).toFixed(2));
+                regular_reviews.push((value[2]).toFixed(2));
+                bad_reviews.push((value[0]+value[1]).toFixed(2));
+            }
+            updateLineChart(months_and_values, good_reviews, regular_reviews, bad_reviews);
         });
     }
     

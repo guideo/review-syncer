@@ -100,13 +100,10 @@ def monthlyreviews(request):
     monthly_reviews = last_twelve_months(Review.objects.all())[calendar.month_name[datetime.now(timezone.utc).month]]
     if term == 'good_reviews':
         monthly_reviews = [r for r in monthly_reviews if r.star_rating >= 4]
-        print(len(monthly_reviews))
     elif term == 'regular_reviews':
         monthly_reviews = [r for r in monthly_reviews if r.star_rating == 3]
-        print(len(monthly_reviews))
     elif term == 'bad_reviews':
         monthly_reviews = [r for r in monthly_reviews if r.star_rating <= 2]
-        print(len(monthly_reviews))
     else:
         print(len(monthly_reviews))
     return render(request, 'data_viewer/monthlyreviews.html', {'monthly_reviews': monthly_reviews})
@@ -182,18 +179,20 @@ def insight_data(request):
     last_year_reviews = last_twelve_months(reviews)
     last_year_reviews_per_rating = {}
     months = []
+    monthly_total = []
     for key in last_year_reviews.keys():
         months += [key]
+        monthly_total += [len(last_year_reviews[key])]
         last_year_reviews_per_rating[key] = [0, 0, 0, 0, 0]
     for key in last_year_reviews.keys():
         for val in last_year_reviews[key]:
             last_year_reviews_per_rating[key][val.star_rating-1] += 1
-
+    
     normalized_reviews = {}
     for key in last_year_reviews_per_rating:
         normalized_reviews[key] = normalize_array(last_year_reviews_per_rating[key])
     
-    response_dict = {'reviews_per_rating': reviews_per_rating, 'top_issues': top_issues, 'total_reviews': total_reviews, 'months': months, 'normalized_reviews': normalized_reviews}
+    response_dict = {'reviews_per_rating': reviews_per_rating, 'top_issues': top_issues, 'total_reviews': total_reviews, 'months': months, 'monthly_total': monthly_total, 'normalized_reviews': normalized_reviews}
         
     response = 'insight_data response: ' + product
     return HttpResponse(json.dumps(response_dict))

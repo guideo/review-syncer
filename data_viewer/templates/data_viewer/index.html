@@ -204,7 +204,6 @@
             document.getElementById("good-reviews").innerHTML = goodReviews + " (" + (goodReviews*100/totalReviews).toFixed(2) + "%)";
             document.getElementById("regular-reviews").innerHTML = regularReviews + " (" + (regularReviews*100/totalReviews).toFixed(2) + "%)";
             document.getElementById("bad-reviews").innerHTML = badReviews + " (" + (badReviews*100/totalReviews).toFixed(2) + "%)";
-            console.log(goodReviews + " - " + regularReviews + " - " + badReviews + " - " + totalReviews);
             updateBarChart(star_ratings_count);
         }
     </script>

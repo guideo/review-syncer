@@ -38,7 +38,6 @@ function drawPieChart2(chart_id, chart_labels, chart_data){
         }
       }
     });
-    console.log('bla1');
 }
 function updatePieChart1(new_data){
     myPieChart1.data.datasets[0].data = new_data;
@@ -50,24 +49,50 @@ function updatePieChart2(new_label, new_data){
     myPieChart2.update();
 }
 
-var areaChart;
-function drawAreaChart(labels, data){
-    var ctx = document.getElementById("areaChart");
-    var myLineChart = new Chart(ctx, {
+var lineChart;
+function drawLineChart(labels, data){
+    var ctx = document.getElementById("lineChart");
+    lineChart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
         datasets: [{
-          label: "Reviews",
-          lineTension: 0.3,
-          backgroundColor: "rgba(2,117,216,0.2)",
-          borderColor: "rgba(2,117,216,1)",
-          pointRadius: 5,
-          pointBackgroundColor: "rgba(2,117,216,1)",
+          label: "Good Reviews",
+          lineTension: 0.1,
+          backgroundColor: "rgba(40,167,69,0.2)",
+          borderColor: "rgba(40,167,69,1)",
+          pointRadius: 3,
+          pointBackgroundColor: "rgba(40,167,69,1)",
           pointBorderColor: "rgba(255,255,255,0.8)",
           pointHoverRadius: 5,
-          pointHoverBackgroundColor: "rgba(2,117,216,1)",
-          pointHitRadius: 20,
+          pointHoverBackgroundColor: "rgba(40,167,69,1)",
+          pointHitRadius: 10,
+          pointBorderWidth: 2,
+          data: data,
+        },{
+          label: "Regular Reviews",
+          lineTension: 0.1,
+          backgroundColor: "rgba(255,193,7,0.2)",
+          borderColor: "rgba(255,193,7,1)",
+          pointRadius: 3,
+          pointBackgroundColor: "rgba(255,193,7,1)",
+          pointBorderColor: "rgba(255,255,255,0.8)",
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: "rgba(255,193,7,1)",
+          pointHitRadius: 10,
+          pointBorderWidth: 2,
+          data: data,
+        },{
+          label: "Bad Reviews",
+          lineTension: 0.1,
+          backgroundColor: "rgba(220,53,69,0.2)",
+          borderColor: "rgba(220,53,69,1)",
+          pointRadius: 3,
+          pointBackgroundColor: "rgba(220,53,69,1)",
+          pointBorderColor: "rgba(255,255,255,0.8)",
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: "rgba(220,53,69,1)",
+          pointHitRadius: 10,
           pointBorderWidth: 2,
           data: data,
         }],
@@ -88,7 +113,7 @@ function drawAreaChart(labels, data){
           yAxes: [{
             ticks: {
               min: 0,
-              max: 300,
+              max: 100,
               maxTicksLimit: 5
             },
             gridLines: {
@@ -98,11 +123,26 @@ function drawAreaChart(labels, data){
         },
         legend: {
           display: false
+        },
+        tooltips: {
+            enabled: true,
+            mode: 'single',
+            callbacks: {
+                label: function(tooltipItems, data) {
+                    return data.datasets[tooltipItems.datasetIndex].label + ': ' + tooltipItems.yLabel + '%';
+                },
+                afterLabel: function(tooltipItems, data) {
+                    return 'Represents ' + ((tooltipItems.yLabel*parseInt(tooltipItems.xLabel[1].replace('Total: ',''))/100).toFixed(0) + ' reviews');
+                }
+            }
         }
       }
     });
 }
-function updateAreaChart(new_data){
-    areaChart.data.datasets[0].data = new_data;
-    areaChart.update();
+function updateLineChart(new_labels, new_data0, new_data1, new_data2){
+    lineChart.data.labels = new_labels;
+    lineChart.data.datasets[0].data = new_data0;
+    lineChart.data.datasets[1].data = new_data1;
+    lineChart.data.datasets[2].data = new_data2;
+    lineChart.update();
 }
