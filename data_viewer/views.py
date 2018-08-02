@@ -19,19 +19,19 @@ PRODUCTS = ["product-upsell", "product-discount", "store-locator",
 # Return a dict containing number of reviews for the past 12 months (including current)
 def last_twelve_months(review_list):
     d = {}
+    next_month = (datetime.now(timezone.utc) + relativedelta(months=1)).month
+    last_year = (datetime.now(timezone.utc) - relativedelta(years=1)).year
+    next_month_last_year = datetime(last_year, next_month, 1, tzinfo=timezone.utc)
+    # Pre-populate dictionary with last 12 months (avoid errors when acessing the keys)
+    for i in range(12):
+        month_name = calendar.month_name[(datetime.now(timezone.utc) - relativedelta(months=11-i)).month]
+        d[month_name] = []
     for r in review_list:
         r_date = r.created_at
         if r.updated_at is not None:
             r_date = r.updated_at
-        next_month = (datetime.now(timezone.utc) + relativedelta(months=1)).month
-        last_year = (datetime.now(timezone.utc) - relativedelta(years=1)).year
-        next_month_last_year = datetime(last_year, next_month, 1, tzinfo=timezone.utc)
         if r_date > datetime.now(timezone.utc) - relativedelta(years=1) and r_date > next_month_last_year:
-            if calendar.month_name[r_date.month] in d:
-                d[calendar.month_name[r_date.month]] += [r]
-            else:
-                d[calendar.month_name[r_date.month]] = []
-                d[calendar.month_name[r_date.month]] += [r]
+            d[calendar.month_name[r_date.month]] += [r]
     return d
 
 def rating_to_name(rating):
@@ -137,13 +137,13 @@ def reviews_json(request):
 def insight(request):
     products = App.objects.all()
     products = [product.name for product in products]
-    
+
     distinct_users = Review.objects.values('shop_domain').distinct()
     this_month = datetime(datetime.now(timezone.utc).year, datetime.now(timezone.utc).month, 1, tzinfo=timezone.utc)
     users_with_multiple_products = Review.objects.values('shop_domain').annotate(Count('shop_domain')).order_by('shop_domain__count').filter(shop_domain__count__gt=1)
     distinct_new_users = Review.objects.filter(Q(created_at__lt=this_month)).values('shop_domain').distinct()
     distinct_new_users = len(distinct_users)-len(distinct_new_users)
-    
+
     return render(request, 'data_viewer/insight.html', {'products':products, 'distinct_users':len(distinct_users), 'multiple_product_users':len(users_with_multiple_products), 'new_users':distinct_new_users})
 
 def normalize_array(arr):
@@ -164,7 +164,7 @@ def insight_data(request):
         ratings_analysis["bad"][key] = 0
         ratings_analysis["regular"][key] = 0
         ratings_analysis["good"][key] = 0
-    
+
     product = request.GET.get('product', '')
     reviews = Review.objects.filter(app_id__name=product)
     reviews_per_rating = [0, 0, 0, 0, 0]
@@ -175,7 +175,7 @@ def insight_data(request):
             if any(word in r.body for word in word_list):
                 ratings_analysis[rating_to_name(r.star_rating)][key] += 1
     top_issues = sorted(ratings_analysis['bad'].items(), key=operator.itemgetter(1, 0), reverse=True)[0:3]
-    
+
     last_year_reviews = last_twelve_months(reviews)
     last_year_reviews_per_rating = {}
     months = []
@@ -187,12 +187,12 @@ def insight_data(request):
     for key in last_year_reviews.keys():
         for val in last_year_reviews[key]:
             last_year_reviews_per_rating[key][val.star_rating-1] += 1
-    
+
     normalized_reviews = {}
     for key in last_year_reviews_per_rating:
         normalized_reviews[key] = normalize_array(last_year_reviews_per_rating[key])
-    
+
     response_dict = {'reviews_per_rating': reviews_per_rating, 'top_issues': top_issues, 'total_reviews': total_reviews, 'months': months, 'monthly_total': monthly_total, 'normalized_reviews': normalized_reviews}
-        
+
     response = 'insight_data response: ' + product
     return HttpResponse(json.dumps(response_dict))
