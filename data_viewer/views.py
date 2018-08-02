@@ -150,6 +150,9 @@ def normalize_array(arr):
     total = 0
     for i in arr:
         total += i
+    # If month has no ratings yet
+    if total == 0:
+        return [0, 0, 0, 0, 0]
     new_arr = []
     for i in arr:
         new_arr.append(i*100/total)
@@ -194,5 +197,4 @@ def insight_data(request):
 
     response_dict = {'reviews_per_rating': reviews_per_rating, 'top_issues': top_issues, 'total_reviews': total_reviews, 'months': months, 'monthly_total': monthly_total, 'normalized_reviews': normalized_reviews}
 
-    response = 'insight_data response: ' + product
     return HttpResponse(json.dumps(response_dict))
